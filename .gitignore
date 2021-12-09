@@ -19,3 +19,14 @@ random_seed
 /build*/
 CMakeLists.txt.user*
 *.unc-backup*
+
+#blinken-qt
+/src/.build/
+/src/blinken-qt
+/Makefile
+/src/Makefile
+
+/.cproject
+/.project
+/.externalToolBuilders
+/.settings
