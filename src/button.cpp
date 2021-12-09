@@ -1,3 +1,4 @@
+/* Blinken-Qt (2020) http://github.com/dualword/Blinken-Qt License:GNU GPL*/
 /***************************************************************************
  *   Copyright (C) 2005-2006 by Albert Astals Cid <aacid@kde.org>          *
  *                                                                         *
@@ -9,34 +10,35 @@
 
 #include "button.h"
 
-#include <kconfig.h>
-#include <ksharedconfig.h>
-#include <kconfiggroup.h>
+//#include <kconfig.h>
+//#include <ksharedconfig.h>
+//#include <kconfiggroup.h>
 
 #include <QKeySequence>
 
 button::button(blinkenGame::color c) : m_selected(false), m_color(c)
 {
-	KConfigGroup kc(KSharedConfig::openConfig(), "General");
+	//KConfigGroup kc(KSharedConfig::openConfig(), "General");
 	QString cs = getColorString();
 	
 	switch (c)
 	{
-		case blinkenGame::blue:
-			m_key = kc.readEntry(cs, int(Qt::Key_3));
-		break;
-		
-		case blinkenGame::yellow:
-			m_key = kc.readEntry(cs, int(Qt::Key_1));
-		break;
-		
-		case blinkenGame::red:
-			m_key =kc.readEntry(cs, int(Qt::Key_2));
-		break;
-		
-		case blinkenGame::green:
-			m_key = kc.readEntry(cs, int(Qt::Key_4));
-		break;
+//	m_key = kc.readEntry(cs, int(Qt::Key_3));
+//		case blinkenGame::blue:
+//			m_key = kc.readEntry(cs, int(Qt::Key_3));
+//		break;
+//
+//		case blinkenGame::yellow:
+//			m_key = kc.readEntry(cs, int(Qt::Key_1));
+//		break;
+//
+//		case blinkenGame::red:
+//			m_key =kc.readEntry(cs, int(Qt::Key_2));
+//		break;
+//
+//		case blinkenGame::green:
+//			m_key = kc.readEntry(cs, int(Qt::Key_4));
+//		break;
 		
 		default:
 			// never happens
@@ -53,9 +55,9 @@ void button::setShortcut(int key)
 	m_key = key;
 	m_selected = false;
 	
-	KConfigGroup kc(KSharedConfig::openConfig(), "General");
-	kc.writeEntry(getColorString(), key);
-	kc.sync();
+//	KConfigGroup kc(KSharedConfig::openConfig(), "General");
+//	kc.writeEntry(getColorString(), key);
+//	kc.sync();
 }
 
 QString button::shortcut() const

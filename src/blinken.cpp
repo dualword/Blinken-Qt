@@ -1,3 +1,4 @@
+/* Blinken-Qt (2020) http://github.com/dualword/Blinken-Qt License:GNU GPL*/
 /***************************************************************************
  *   Copyright (C) 2005-2007 by Albert Astals Cid <aacid@kde.org>          *
  *                                                                         *
@@ -20,17 +21,10 @@
 #include <QKeySequence>
 #include <QMouseEvent>
 
-#include <kconfig.h>
-#include <khelpmenu.h>
-#include <kfontutils.h>
-#include <klocalizedstring.h>
-#include <KAboutData>
-
 #include "button.h"
 #include "counter.h"
 #include "number.h"
 #include "highscoredialog.h"
-#include "settings.h"
 
 static const double centerX = 2.0;
 static const double centerY = 2.5;
@@ -43,8 +37,8 @@ static const double nonButtonRibbonY = 125.0;
 
 blinken::blinken() : m_overHighscore(false), m_overQuit(false), m_overCentralText(false), m_overMenu(false), m_overAboutKDE(false), m_overAboutBlinken(false), m_overSettings(false), m_overManual(false), m_overCentralLetters(false), m_overCounter(false), m_overFont(false), m_overSound(false), m_showPreferences(false), m_updateButtonHighlighting(false), m_highlighted(blinkenGame::none)
 {
-	m_renderer = new QSvgRenderer(QStandardPaths::locate(QStandardPaths::DataLocation, QStringLiteral("images/blinken.svg")));
-	
+	m_renderer = new QSvgRenderer(QString(":/blinken.svg"));
+
 	m_buttons[0] = new button(blinkenGame::blue);
 	m_buttons[1] = new button(blinkenGame::yellow);
 	m_buttons[2] = new button(blinkenGame::red);
@@ -65,22 +59,18 @@ blinken::blinken() : m_overHighscore(false), m_overQuit(false), m_overCentralTex
 	connect(&m_game, SIGNAL(phaseChanged()), this, SLOT(update()));
 	connect(&m_game, &blinkenGame::highlight, this, &blinken::highlight);
 	
-	m_helpMenu = new KHelpMenu(this, KAboutData::applicationData());
-	m_helpMenu->menu(); // ensures the actions are created
-	
 	for (int i = 0; i < 3; i++) m_overLevels[i] = false;
 	
-	QString aux = i18nc("If the Steve font that is used by Blinken by default to show status messages does not support any of the characters of your language, please translate that message to 1 and KDE standard font will be used to show the texts, if not translate it to 0", "0");
+	QString aux = tr("If the Steve font that is used by Blinken by default to show status messages does not support any of the characters of your language, please translate that message to 1 and KDE standard font will be used to show the texts, if not translate it to 0", "0");
 	
 	m_alwaysUseNonCoolFont = aux == QStringLiteral("1");
-	setAutoSaveSettings();
+	//setAutoSaveSettings();
 }
 
 blinken::~blinken()
 {
 	delete m_renderer;
 	for (int i = 0; i < 4; i++) delete m_buttons[i];
-	delete m_helpMenu;
 }
 
 QSize blinken::sizeHint() const
@@ -180,12 +170,12 @@ void blinken::paintEvent(QPaintEvent *)
 		// draw the options' text
 		QFont f1 = QFont();
 		p.setFont(f1);
-		int size, sizeAux;
+		int size = 15, sizeAux = 15;
 		QRect area;
-		QString sounds = i18n("Sounds");
-		QString font = i18n("Font");
-		size = KFontUtils::adaptFontSize(p, sounds, 95, 20, 28, 1, KFontUtils::DoNotAllowWordWrap);
-		sizeAux = KFontUtils::adaptFontSize(p, font, 95, 20, 28, 1, KFontUtils::DoNotAllowWordWrap);
+		QString sounds = tr("Sounds");
+		QString font = tr("Font");
+//		size = KFontUtils::adaptFontSize(p, sounds, 95, 20, 28, 1, KFontUtils::DoNotAllowWordWrap);
+//		sizeAux = KFontUtils::adaptFontSize(p, font, 95, 20, 28, 1, KFontUtils::DoNotAllowWordWrap);
 		if (sizeAux > size) size = sizeAux;
 		f1.setPointSize(size);
 		area = p.boundingRect(QRect(), Qt::AlignLeft, sounds);
@@ -225,7 +215,7 @@ void blinken::paintEvent(QPaintEvent *)
 	switch (m_game.phase())
 	{
 		case blinkenGame::starting:
-			drawText(p, i18nc("@action:button Start a new game", "Start"), QPointF(aux1, aux2), true, aux3, aux4, &m_centralTextRect, m_overCentralText, true);
+			drawText(p, tr("Start"), QPointF(aux1, aux2), true, aux3, aux4, &m_centralTextRect, m_overCentralText, true);
 		break;
 		
 		case blinkenGame::choosingLevel:
@@ -237,7 +227,7 @@ void blinken::paintEvent(QPaintEvent *)
 		case blinkenGame::waiting1:
 		case blinkenGame::learningTheSequence:
 		case blinkenGame::typingTheSequence:
-			drawText(p, i18n("Restart"), QPointF(aux1, aux2), true, aux3, aux4, &m_centralTextRect, m_overCentralText, true);
+			drawText(p, tr("Restart"), QPointF(aux1, aux2), true, aux3, aux4, &m_centralTextRect, m_overCentralText, true);
 		break;
 	}
 	
@@ -355,20 +345,18 @@ void blinken::mousePressEvent(QMouseEvent *e)
 	else if (m_showPreferences && m_fontRect.contains(e -> pos()) && !m_alwaysUseNonCoolFont)
 	{
 		blinkenSettings::setCustomFont(!blinkenSettings::customFont());
-		blinkenSettings::self()->save();
 		update();
 	}
 	else if (m_showPreferences && m_soundRect.contains(e -> pos()))
 	{
 		blinkenSettings::setPlaySounds(!blinkenSettings::playSounds());
-		blinkenSettings::self()->save();
 		update();
 	}
 	else if (m_overQuit) qApp->quit();
-	else if (m_overAboutBlinken || m_overCentralLetters) m_helpMenu -> aboutApplication();
-	else if (m_overAboutKDE) m_helpMenu -> aboutKDE();
+	else if (m_overAboutBlinken || m_overCentralLetters) aboutApplication();
+//	else if (m_overAboutKDE) m_helpMenu -> aboutKDE();
 	else if (m_overSettings) togglePreferences();
-	else if (m_overManual) m_helpMenu -> appHelpActivated();
+//	else if (m_overManual) m_helpMenu -> appHelpActivated();
 	else if (m_game.phase() != blinkenGame::choosingLevel && m_overCentralText)
 	{
 		startGamePressed();
@@ -415,14 +403,14 @@ void blinken::checkHS()
 	if (hsm.scoreGoodEnough(m_game.level(), m_game.score()))
 	{
 		bool ok;
-		const QString name = QInputDialog::getText(this, i18n("Enter Your Name"), i18nc("@label:textbox refers to the user's name", "Name:"), QLineEdit::Normal, m_lastName, &ok);
+		const QString name = QInputDialog::getText(this, tr("Enter Your Name"), tr("Name:"), QLineEdit::Normal, m_lastName, &ok);
 		if (!name.isNull() && ok)
 		{
 			m_lastName = name;
 			hsm.addScore(m_game.level(), m_game.score(), name);
+			highScoreDialog *hsd = new highScoreDialog(this, m_renderer);
+			hsd->showLevel(m_game.level());
 		}
-		highScoreDialog *hsd = new highScoreDialog(this, m_renderer);
-		hsd->showLevel(m_game.level());
 	}
 }
 
@@ -691,33 +679,33 @@ void blinken::drawStatusText(QPainter &p)
 	p.rotate(-3.29);
 	p.setPen(Qt::blue);
 
-	QString restartText = i18n("Restart the game");
+	QString restartText = tr("Restart the game");
 	QString text;
-	if (m_overQuit) text = i18n("Quit Blinken");
-	else if (m_overHighscore || m_overCounter) text = i18n("View Highscore Table");
-	else if (m_overAboutBlinken || m_overCentralLetters) text = m_helpMenu->action( KHelpMenu::menuAboutApp )->text().remove(QLatin1Char('&'));
-	else if (m_overAboutKDE) text = m_helpMenu->action( KHelpMenu::menuAboutKDE )->text().remove(QLatin1Char('&'));
+	if (m_overQuit) text = tr("Quit Blinken");
+	else if (m_overHighscore || m_overCounter) text = tr("View Highscore Table");
+	else if (m_overAboutBlinken || m_overCentralLetters) text = tr("About Blinken");
+//	else if (m_overAboutKDE) text = m_helpMenu->action( KHelpMenu::menuAboutKDE )->text().remove(QLatin1Char('&'));
 	else if (m_overSettings)
 	{
-		if (!m_showPreferences) text = i18n("Show Settings");
-		else text = i18n("Hide Settings");
+		if (!m_showPreferences) text = tr("Show Settings");
+		else text = tr("Hide Settings");
 	}
-	else if (m_overManual) text = m_helpMenu->action( KHelpMenu::menuHelpContents )->text().remove(QLatin1Char('&'));
-	else if (m_overLevels[0]) text = i18n("2nd Level");
-	else if (m_overLevels[1]) text = i18n("1st Level");
-	else if (m_overLevels[2]) text = i18n("Random Level");
-	else if (m_buttons[0]->selected() || m_buttons[1]->selected() || m_buttons[2]->selected() || m_buttons[3]->selected()) text = i18n("Press the key for this button");
-	else if (m_showPreferences) text = i18n("Click any button to change its key");
+//	else if (m_overManual) text = m_helpMenu->action( KHelpMenu::menuHelpContents )->text().remove(QLatin1Char('&'));
+	else if (m_overLevels[0]) text = tr("2nd Level");
+	else if (m_overLevels[1]) text = tr("1st Level");
+	else if (m_overLevels[2]) text = tr("Random Level");
+	else if (m_buttons[0]->selected() || m_buttons[1]->selected() || m_buttons[2]->selected() || m_buttons[3]->selected()) text = tr("Press the key for this button");
+	else if (m_showPreferences) text = tr("Click any button to change its key");
 	else
 	{
 		switch (m_game.phase())
 		{
 			case blinkenGame::starting:
-				text = i18n("Press Start to begin");
+				text = tr("Press Start to begin");
 			break;
 			
 			case blinkenGame::choosingLevel:
-				text = i18n("Set the Difficulty Level...");
+				text = tr("Set the Difficulty Level...");
 			break;
 			
 			case blinkenGame::waiting3:
@@ -727,7 +715,7 @@ void blinken::drawStatusText(QPainter &p)
 				}
 				else
 				{
-					text = i18n("Next sequence in 3...");
+					text = tr("Next sequence in 3...");
 				}
 			break;
 			
@@ -740,11 +728,11 @@ void blinken::drawStatusText(QPainter &p)
 				{
 					if (m_game.level() == 1)
 					{
-						text = i18n("Next sequence in 3, 2...");
+						text = tr("Next sequence in 3, 2...");
 					}
 					else
 					{
-						text = i18n("Next sequence in 2...");
+						text = tr("Next sequence in 2...");
 					}
 				}
 			break;
@@ -758,11 +746,11 @@ void blinken::drawStatusText(QPainter &p)
 				{
 					if (m_game.level() == 1)
 					{
-						text = i18n("Next sequence in 3, 2, 1...");
+						text = tr("Next sequence in 3, 2, 1...");
 					}
 					else
 					{
-						text = i18n("Next sequence in 2, 1...");
+						text = tr("Next sequence in 2, 1...");
 					}
 				}
 			break;
@@ -774,7 +762,7 @@ void blinken::drawStatusText(QPainter &p)
 				}
 				else
 				{
-					text = i18n("Remember this sequence...");
+					text = tr("Remember this sequence...");
 				}
 			break;
 			
@@ -785,16 +773,17 @@ void blinken::drawStatusText(QPainter &p)
 				}
 				else
 				{
-					text = i18n("Repeat the sequence");
+					text = tr("Repeat the sequence");
 				}
 			break;
 		}
 	}
 	
 	QFont f;
-	if (blinkenSettings::customFont() && !m_alwaysUseNonCoolFont) f = QFont(QStringLiteral("Steve"));
+	if (blinkenSettings::customFont() && !m_alwaysUseNonCoolFont) f = QFont(QFontDatabase::applicationFontFamilies(0).at(0));
 	p.setFont(f);
-	f.setPointSize(KFontUtils::adaptFontSize(p, text, 380, 30, 28, 1, KFontUtils::DoNotAllowWordWrap));
+	//f.setPointSize(KFontUtils::adaptFontSize(p, text, 380, 30, 28, 1, KFontUtils::DoNotAllowWordWrap));
+	f.setPointSize(20);
 	p.setFont(f);
 	p.drawText(0, 0, text);
 }
@@ -802,13 +791,13 @@ void blinken::drawStatusText(QPainter &p)
 void blinken::drawLevel(QPainter &p)
 {
 	QString n[3];
-	n[0] = i18n("2");
-	n[1] = i18n("1");
-	n[2] = i18n("?");
+	n[0] = tr("2");
+	n[1] = tr("1");
+	n[2] = tr("?");
 	
 	double posX = (double)width() / 2.0;
 	double posY = (double)height() / 1.868;
-	drawText(p, i18nc("@label:chooser which level is currently being played", "Level"), QPointF(posX, posY), false, 0, 0, nullptr, false, true);
+	drawText(p, tr("Level"), QPointF(posX, posY), false, 0, 0, nullptr, false, true);
 	
 	QPointF cp;
 	for (int i = 0; i < 3; i++)
@@ -831,7 +820,7 @@ void blinken::drawText(QPainter &p, const QString &text, const QPointF &center, 
 	oldFont = f;
 	double aux1 = (double)width() / 3.389;
 	double aux2 = (double)height() / 17.5;
-	f.setPointSize(KFontUtils::adaptFontSize(p, text, qRound(aux1), qRound(aux2), 28, 1, KFontUtils::DoNotAllowWordWrap));
+//	f.setPointSize(KFontUtils::adaptFontSize(p, text, qRound(aux1), qRound(aux2), 28, 1, KFontUtils::DoNotAllowWordWrap));
 	if (bold) f.setBold(true);
 	p.setFont(f);
 	
@@ -1084,5 +1073,21 @@ QPixmap blinken::getPixmap(const QString &element, const QSize &imageSize)
 		it = m_pixmapCache.insert(element, pix);
 	}
 	return it.value();
+}
+
+void blinken::aboutApplication()
+{
+	QString str;
+	str.append("<b>Blinken-Qt</b> - Qt port of KDE game Blinken. <br>");
+	str.append("Source code: <a href='http://github.com/dualword/Blinken-Qt'>Blinken-qt</a>. License: GNU GPL. <hr/>");
+	str.append("<i>Information about Blinken:</i> <br/>");
+	str.append("Blinken version 19.12.1. A memory enhancement game. <br/>");
+	str.append("License: GNU General Public License. <br/>");
+	str.append("&copy;2005-2007 Albert Astals Cid &copy;2005-2007 Danny Allen<br/>");
+	str.append("Coding: Albert Astals Cid aacid@kde.org <br/>");
+	str.append("Design, Graphics and Sounds: Danny Allen danny@dannyallen.co.uk<br/>");
+	str.append("GPL'ed his 'Steve' font so that we could use it: Steve Jordi steve@sjordi.com <br/>");
+	QMessageBox::about(this, tr("About Blinken-Qt"), str );
+
 }
 

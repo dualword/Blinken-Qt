@@ -1,3 +1,4 @@
+/* Blinken-Qt (2020) http://github.com/dualword/Blinken-Qt License:GNU GPL*/
 /***************************************************************************
  *   Copyright (C) 2005-2006 by Albert Astals Cid <aacid@kde.org>          *
  *                                                                         *
@@ -10,10 +11,8 @@
 #ifndef HIGHSCOREDIALOG_H
 #define HIGHSCOREDIALOG_H
 
-#include <QDialog>
-
-#include <QPair>
-#include <QList>
+#include "blinken.h"
+#include "settings.h"
 
 class QSvgRenderer;
 

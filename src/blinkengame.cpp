@@ -1,3 +1,4 @@
+/* Blinken-Qt (2020) http://github.com/dualword/Blinken-Qt License:GNU GPL*/
 /***************************************************************************
  *   Copyright (C) 2005-2006 by Albert Astals Cid <aacid@kde.org>          *
  *                                                                         *
@@ -13,7 +14,6 @@
 
 #include <QTimer>
 
-#include <krandom.h>
 #include "soundsplayer.h"
 
 blinkenGame::blinkenGame() : m_phase(starting)
@@ -156,7 +156,8 @@ blinkenGame::color blinkenGame::generateColor()
 	// make the compiler happy :-D
 	color c = none;
 
-	r = 1 + (int)(4.0 * KRandom::random() / (RAND_MAX + 1.0));
+	r = 1 + rand() % 4;
+
 	switch(r)
 	{
 		case 1:

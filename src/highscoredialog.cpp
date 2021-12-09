@@ -1,3 +1,4 @@
+/* Blinken-Qt (2020) http://github.com/dualword/Blinken-Qt License:GNU GPL*/
 /***************************************************************************
  *   Copyright (C) 2005-2006 by Albert Astals Cid <aacid@kde.org>          *
  *                                                                         *
@@ -16,13 +17,7 @@
 #include <QTabWidget>
 #include <QVBoxLayout>
 
-#include <kconfig.h>
-#include <kfontutils.h>
-#include <klocalizedstring.h>
-#include <ksharedconfig.h>
-
 #include "counter.h"
-#include "settings.h"
 
 static const int margin = 15;
 static const int smallMargin = 5;
@@ -67,9 +62,9 @@ void scoresWidget::paintEvent(QPaintEvent *)
 	
 	p.setPen(Qt::black);
 	
-	if (blinkenSettings::customFont()) f = QFont(QStringLiteral("Steve"));
-	p.setFont(f);
-	f.setPointSize(KFontUtils::adaptFontSize(p, QStringLiteral("A"), 1000, namesFontSize, 28, 1, KFontUtils::DoNotAllowWordWrap));
+	if (blinkenSettings::customFont()) f = QFont(QFontDatabase::applicationFontFamilies(0).at(0));
+	//f.setPointSize(KFontUtils::adaptFontSize(p, QStringLiteral("A"), 1000, namesFontSize, 28, 1, KFontUtils::DoNotAllowWordWrap));
+	f.setPointSize(15);
 	p.setFont(f);
 	
 	p.translate(margin, margin);
@@ -96,9 +91,9 @@ QSize scoresWidget::calcSize()
 	QPainter p(&dummyPixmap);
 	QFont f;
 	
-	if (blinkenSettings::customFont()) f = QFont(QStringLiteral("Steve"));
-	p.setFont(f);
-	f.setPointSize(KFontUtils::adaptFontSize(p, QStringLiteral("A"), 1000, namesFontSize, 28, 1, KFontUtils::DoNotAllowWordWrap));
+	if (blinkenSettings::customFont()) f = QFont(QFontDatabase::applicationFontFamilies(0).at(0));
+	//f.setPointSize(KFontUtils::adaptFontSize(p, QStringLiteral("A"), 1000, namesFontSize, 28, 1, KFontUtils::DoNotAllowWordWrap));
+	f.setPointSize(15);
 	p.setFont(f);
 	for (int i = 0; i < 3; i++)
 	{
@@ -138,7 +133,7 @@ class myTabWidget : public QTabWidget
 
 highScoreDialog::highScoreDialog(QWidget *parent, QSvgRenderer *renderer) : QDialog(parent)
 {
-	setWindowTitle(i18nc("@title:window the highest scores for each level are shown", "Highscores"));
+	setWindowTitle(tr("Highscores"));
 
 	setLayout(new QVBoxLayout(this));
 	m_tw = new myTabWidget(this);
@@ -149,9 +144,9 @@ highScoreDialog::highScoreDialog(QWidget *parent, QSvgRenderer *renderer) : QDia
 
 	highScoreManager hsm;
 	
-	m_tw -> addTab(new scoresWidget(nullptr, hsm.scores(0), renderer), i18nc("@title:group High scores Level 1 tab title", "Level 1"));
-	m_tw -> addTab(new scoresWidget(nullptr, hsm.scores(1), renderer), i18nc("@title:group High scores Level 2 tab title", "Level 2"));
-	m_tw -> addTab(new scoresWidget(nullptr, hsm.scores(2), renderer), i18nc("@title:group High scores Level ? tab tible", "Level ?"));
+	m_tw -> addTab(new scoresWidget(nullptr, hsm.scores(0), renderer), tr("Level 1"));
+	m_tw -> addTab(new scoresWidget(nullptr, hsm.scores(1), renderer), tr("Level 2"));
+	m_tw -> addTab(new scoresWidget(nullptr, hsm.scores(2), renderer), tr("Level ?"));
 }
 
 void highScoreDialog::showLevel(int level)
@@ -185,7 +180,8 @@ highScoreManager::~highScoreManager()
 
 bool highScoreManager::scoreGoodEnough(int level, int score)
 {
-	level--;
+	if(score <= 0) return false;
+	if(m_scores[--level].empty()) return true;
 	QList< QPair<int, QString> >::iterator it, itEnd;
 	it = m_scores[level].begin();
 	itEnd = m_scores[level].end();
@@ -196,32 +192,35 @@ bool highScoreManager::scoreGoodEnough(int level, int score)
 
 void highScoreManager::addScore(int level, int score, const QString &name)
 {
-	level--;
-	QList< QPair<int, QString> >::iterator it, itEnd;
-	it = m_scores[level].begin();
-	itEnd = m_scores[level].end();
-	while (it != itEnd && (*it).first >= score) ++it;
-	
-	if (it != itEnd)
-	{
-		m_scores[level].insert(it, qMakePair(score, name));
-		m_scores[level].erase(--m_scores[level].end());
-		
-		KConfigGroup cfg(KSharedConfig::openConfig(), QStringLiteral("Level%1").arg(level + 1));
-		int j;
-		for (it = m_scores[level].begin(), j = 1; it != m_scores[level].end(); ++it, j++)
-		{
-			cfg.writeEntry(QStringLiteral("Score%1").arg(j), (*it).first);
-			cfg.writeEntry(QStringLiteral("Name%1").arg(j), (*it).second);
-		}
-		cfg.sync();
+	if(m_scores[--level].empty()){
+		m_scores[level].append(qMakePair(score, name));
+	}else{
+		QList< QPair<int, QString> >::iterator it, itEnd;
+		it = m_scores[level].begin();
+		itEnd = m_scores[level].end();
+		while (it != itEnd && (*it).first >= score) ++it;
 
-		foreach(highScoreManager *hsm, s_allHSM)
+		if (it != itEnd)
 		{
-			if (hsm != this)
-			{
-				hsm->update();
-			}
+			m_scores[level].insert(it, qMakePair(score, name));
+			if(m_scores[level].size() > 5) m_scores[level].erase(--m_scores[level].end());
+		}
+	}
+	
+	QSettings s;
+	s.beginGroup(QStringLiteral("Level%1").arg(level + 1));
+	for (int i =0;i < m_scores[level].size();i++)
+	{
+		s.setValue(QStringLiteral("Score%1").arg(i+1), m_scores[level].at(i).first);
+		s.setValue(QStringLiteral("Name%1").arg(i+1), m_scores[level].at(i).second);
+	}
+	s.endGroup();
+
+	foreach(highScoreManager *hsm, s_allHSM)
+	{
+		if (hsm != this)
+		{
+			hsm->update();
 		}
 	}
 }
@@ -232,13 +231,18 @@ void highScoreManager::update()
 	{
 		m_scores[i].clear();
 	}
+	QSettings s;
 	for (int i = 1; i <= 3; i++)
 	{
-		KConfigGroup cfg(KSharedConfig::openConfig(), QStringLiteral("Level%1").arg(i));
+		s.beginGroup(QStringLiteral("Level%1").arg(i));
 		for (int j = 1; j <= 5; j++)
 		{
-			m_scores[i-1].append(qMakePair(cfg.readEntry(QStringLiteral("Score%1").arg(j),QVariant(0)).toInt(),cfg.readEntry(QStringLiteral("Name%1").arg(j),QString())));
+			int score = s.value(QStringLiteral("Score%1").arg(j), 0).toInt();
+			QString name = s.value(QStringLiteral("Name%1").arg(j), "").toString();
+			if(score <= 0 || name.trimmed().length() <= 0) continue;
+			m_scores[i-1].append(qMakePair(score,name));
 		}
+		s.endGroup();
 	}
 }
 

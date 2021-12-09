@@ -1,3 +1,4 @@
+/* Blinken-Qt (2020) http://github.com/dualword/Blinken-Qt License:GNU GPL*/
 /***************************************************************************
  *   Copyright (C) 2005 by Albert Astals Cid <aacid@kde.org>               *
  *                                                                         *
@@ -10,12 +11,13 @@
 #ifndef SOUNDSPLAYER_H
 #define SOUNDSPLAYER_H
 
-#include <phonon/MediaObject>
-#include <phonon/audiooutput.h>
+//#include <phonon/MediaObject>
+//#include <phonon/audiooutput.h>
 
 #include <QTimer>
 
 #include "blinkengame.h"
+#include "settings.h"
 
 class soundsPlayer : public QObject
 {
@@ -34,8 +36,8 @@ Q_OBJECT
 		
 	private:
 		QString m_greenSound, m_redSound, m_blueSound, m_yellowSound, m_allSound;
-		Phonon::MediaObject m_mediaObject;
-		Phonon::AudioOutput m_audioOutput;
+//		Phonon::MediaObject m_mediaObject;
+//		Phonon::AudioOutput m_audioOutput;
 		
 		QTimer m_warnTimer;
 };
