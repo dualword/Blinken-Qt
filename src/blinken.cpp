@@ -1079,7 +1079,7 @@ void blinken::aboutApplication()
 {
 	QString str;
 	str.append("<b>Blinken-Qt</b> - Qt port of KDE game Blinken. <br>");
-	str.append("Source code: <a href='http://github.com/dualword/Blinken-Qt'>Blinken-qt</a>. License: GNU GPL. <hr/>");
+	str.append("Source code: <a href='http://github.com/dualword/Blinken-Qt'>Blinken-Qt</a>. License: GNU GPL. <hr/>");
 	str.append("<i>Information about Blinken:</i> <br/>");
 	str.append("Blinken version 19.12.1. A memory enhancement game. <br/>");
 	str.append("License: GNU General Public License. <br/>");

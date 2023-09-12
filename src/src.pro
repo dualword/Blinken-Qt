@@ -4,8 +4,7 @@ DEPENDPATH += .
 INCLUDEPATH += .
 
 CONFIG += qt widgets thread release
-QT += svg
-#QT += phonon 
+QT += svg multimedia
 
 QMAKE_CXXFLAGS += -std=c++11
 

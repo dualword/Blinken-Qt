@@ -13,7 +13,7 @@ public:
 
 	static bool playSounds() {
 		QSettings s;
-		return s.value("playSounds", "0").toBool();
+		return s.value("playSounds", "1").toBool();
 	}
 
 	static bool customFont() {

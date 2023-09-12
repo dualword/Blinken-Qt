@@ -1,4 +1,4 @@
-/* Blinken-Qt (2020) http://github.com/dualword/Blinken-Qt License:GNU GPL*/
+/* Blinken-Qt (2023) http://github.com/dualword/Blinken-Qt License:GNU GPL*/
 /***************************************************************************
  *   Copyright (C) 2005 by Albert Astals Cid <aacid@kde.org>               *
  *                                                                         *
@@ -10,14 +10,16 @@
 
 #include "soundsplayer.h"
 
-#include <QStandardPaths>
-
 soundsPlayer::soundsPlayer()
-    //: m_audioOutput(Phonon::GameCategory)
 {
-//	m_audioOutput.setVolume( 0.8f );
-//	Phonon::createPath(&m_mediaObject, &m_audioOutput);
-//	connect(&m_mediaObject, &Phonon::MediaObject::finished, this, &soundsPlayer::playEnded);
+	format.setSampleRate(44100);
+	format.setChannelCount(1);
+	format.setSampleSize(16);
+	format.setCodec("audio/pcm");
+	format.setByteOrder(QAudioFormat::LittleEndian);
+	format.setSampleType(QAudioFormat::SignedInt);
+	out = new QAudioOutput(format, this);
+	connect(out, SIGNAL(stateChanged(QAudio::State)), SLOT(playEnded(QAudio::State)));
 
 	m_allSound = ":/lose.wav";
 	m_greenSound = ":/1.wav";
@@ -31,55 +33,67 @@ soundsPlayer::soundsPlayer()
 
 soundsPlayer::~soundsPlayer()
 {
+	if(out) delete out;
 }
 
 void soundsPlayer::play(blinkenGame::color c)
 {
-//	if (blinkenSettings::playSounds())
-//	{
-//		QString soundFile;
-//		switch (c)
-//		{
-//			case blinkenGame::red:
-//				soundFile = m_redSound;
-//			break;
-//
-//			case blinkenGame::green:
-//				soundFile = m_greenSound;
-//			break;
-//
-//			case blinkenGame::blue:
-//				soundFile = m_blueSound;
-//			break;
-//
-//			case blinkenGame::yellow:
-//				soundFile = m_yellowSound;
-//			break;
-//
-//			case blinkenGame::all:
-//				soundFile = m_allSound;
-//			break;
-//
-//			default:
-//			break;
-//		}
-//		if (!soundFile.isEmpty())
-//		{
-//			m_mediaObject.setCurrentSource(QUrl::fromLocalFile(soundFile));
-//			m_mediaObject.play();
-//		}
-//	}
-//	else
-//	{
+	if (blinkenSettings::playSounds())
+	{
+		QString soundFile;
+		switch (c)
+		{
+			case blinkenGame::red:
+				soundFile = m_redSound;
+			break;
+
+			case blinkenGame::green:
+				soundFile = m_greenSound;
+			break;
+
+			case blinkenGame::blue:
+				soundFile = m_blueSound;
+			break;
+
+			case blinkenGame::yellow:
+				soundFile = m_yellowSound;
+			break;
+
+			case blinkenGame::all:
+				soundFile = m_allSound;
+			break;
+
+			default:
+			break;
+		}
+		if (!soundFile.isEmpty())
+		{
+			file.setFileName(soundFile);
+			file.open(QIODevice::ReadOnly);
+			data.setData(file.readAll());
+			data.open(QIODevice::ReadOnly);
+			file.close();
+			out->setBufferSize(data.size());
+			data.seek(0);
+			out->start(&data);
+		}
+	}
+	else
+	{
 		m_warnTimer.start(250);
-//	}
+	}
 }
 
-void soundsPlayer::playEnded()
+void soundsPlayer::playEnded(QAudio::State state)
 {
-//	if (blinkenSettings::playSounds())
-//	{
-//		m_warnTimer.start(250);
-//	}
+	switch (state) {
+		case QAudio::IdleState:
+			if (blinkenSettings::playSounds())
+			{
+				m_warnTimer.start(250);
+			}
+			out->stop();
+			data.close();
+		  break;
+	}
 }
-
